@@ -1,0 +1,241 @@
+openapi: 3.0.0
+
+info:
+  title: API Conformance Scan Jobs Manager for Kubernetes
+  description: >
+    API Conformance Scan Jobs Manager provides a convenient way
+    to run 42Crunch API Conformance Scan on-premises as a Kubernetes Job 
+    in your Kubernetes cluster.
+  version: 1.0.0
+
+x-42c-no-authentication: true
+
+servers:
+  - description: Local server
+    url: http://localhost:8090/
+
+paths:
+  /api/job:
+    get:
+      description: Get status of all jobs
+      operationId: ListJobs
+      tags:
+        - jobs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Jobs"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      description: Create a new job
+      operationId: CreateJob
+      tags:
+        - jobs
+      requestBody:
+        content:
+          application/json:
+            examples:
+              simple:
+                value:
+                  token: 00000000-0000-0000-0000-000000000000
+              extended:
+                value:
+                  token: 00000000-0000-0000-0000-000000000000
+                  name: scand-foo
+                  expirationTime: 777
+                  platformService: protection.dev.42crunch.com:8001
+                  scandImage: 42crunch/scand-agent:latest
+                  env:
+                    SECURITY_FOO: bar
+                    SECURITY_BAZ: bam
+            schema:
+              $ref: "#/components/schemas/JobSpec"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobStatus"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/job/{name}:
+    get:
+      description: Read job status
+      operationId: GetJob
+      tags:
+        - jobs
+      parameters:
+        - in: path
+          required: true
+          name: name
+          schema:
+            $ref: "#/components/schemas/JobName"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobStatus"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      description: Delete job
+      operationId: DeleteJob
+      tags:
+        - jobs
+      parameters:
+        - in: path
+          required: true
+          name: name
+          schema:
+            $ref: "#/components/schemas/JobName"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    name: scand-48340c78-a76c-475f-aa4a-36fc834b3c02
+                    status: deleted
+              schema:
+                $ref: "#/components/schemas/JobStatus"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/logs/{name}:
+    get:
+      description: Read job logs
+      operationId: GetLogs
+      tags:
+        - logs
+      parameters:
+        - in: path
+          required: true
+          name: name
+          schema:
+            $ref: "#/components/schemas/JobName"
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                minLength: 0
+                maxLength: 104857600
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    JobName:
+      type: string
+      pattern: ^scand-[0-9a-zA-Z-]{1,36}$
+      maxLength: 42
+      minLength: 7
+    Jobs:
+      type: object
+      properties:
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobStatus"
+          maxItems: 1024
+      additionalProperties: false
+    JobSpec:
+      type: object
+      properties:
+        token:
+          description: On-premises scan token
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          maxLength: 36
+          minLength: 36
+        name:
+          $ref: "#/components/schemas/JobName"
+        expirationTime:
+          description: Expiration time for a job (in seconds)
+          type: integer
+          maximum: 604800
+          minimum: 0
+          format: int32
+        platformService:
+          description: Hostname and port for connecting to 42 Crunch Platform
+          type: string
+          pattern: ^\P{Cc}+$
+          maxLength: 128
+          minLength: 3
+        scandImage:
+          description: Docker image for scand-agent
+          type: string
+          pattern: ^\P{Cc}+$
+          maxLength: 128
+          minLength: 1
+        env:
+          description: Environment variables for scand-agent (must start with SECURITY_)
+          type: object
+          additionalProperties:
+            type: string
+            pattern: ^\P{Cc}+$
+            minLength: 0
+            maxLength: 512
+      additionalProperties: false
+      required:
+        - token
+    JobStatus:
+      type: object
+      properties:
+        name:
+          $ref: "#/components/schemas/JobName"
+        status:
+          type: string
+          enum:
+            - started
+            - active
+            - succeeded
+            - failed
+            - unknown
+      additionalProperties: false
+      required:
+        - name
+        - status
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          maxLength: 1024
+          minLength: 1
+          pattern: ^\P{Cc}+$
+      additionalProperties: false
+      required:
+        - error
