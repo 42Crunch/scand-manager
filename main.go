@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"flag"
 	"io"
 	"log"
 	"net/http"
@@ -31,15 +32,28 @@ var platformService string
 var scandImage string
 var expirationTimeInt int64
 var clientset *kubernetes.Clientset
+var podconfig *v1.PodSpec
 
 func main() {
 
+	podconfigFile := flag.String("podconfig", "", "pod configuration file")
+
+	flag.Parse()
+
 	readEnvConfig()
+
+	if *podconfigFile != "" {
+		readPodConfig(*podconfigFile)
+	}
 
 	connectk8sClient()
 
 	log.Printf("Startig scand manager: NAMESPACE: '%s', PLATFORM_HOST: '%s', SCAND_IMAGE: '%s', EXPIRATION_TIME: '%d'",
 		namespace, platformService, scandImage, expirationTimeInt)
+
+	if podconfig != nil {
+		log.Printf("Using pod configuration file: %s", *podconfigFile)
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/job/{name}", jobStatus).Methods("GET")

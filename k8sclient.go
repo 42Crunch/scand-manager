@@ -46,7 +46,7 @@ func getk8sJob(job Job) *batchv1.Job {
 	backoffLimit := int32(0)
 	tTLSecondsAfterFinished := int32(job.ExpirationTime)
 
-	return &batchv1.Job{
+	result := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
 			APIVersion: "batch/v1",
@@ -72,6 +72,10 @@ func getk8sJob(job Job) *batchv1.Job {
 			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
+	if podconfig != nil {
+		result.Spec.Template.Spec.Affinity = podconfig.Affinity.DeepCopy()
+	}
+	return result
 }
 
 func getPod(jobName string) (string, error) {

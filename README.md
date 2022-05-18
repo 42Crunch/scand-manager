@@ -115,6 +115,38 @@ spec:
 | `SCAND_IMAGE`      | The version of the Docker image `scand-agent` that the service pulls and runs for the on-premises scan. The default is `42crunch/scand-agent:latest`. For more details on the available images, see the [release notes of 42Crunch Platform](https://docs.42crunch.com/latest/content/whatsnew/whats_new.htm). |
 | `EXPIRATION_TIME`  | The expiration time for the jobs (in seconds). Completed jobs are deleted after the specified time. The default value is `86400` (24 hours). Requires Kubernetes v1.21 or newer, for older Kubernetes versions jobs must be cleaned up manually using provided API or `kubectl`.                               |
 
+### Optionally configure POD affinity rules
+
+Scan Jobs Manager can be configured to specify pod affinity for the jobs it creates.
+
+Pod affinity can be specified by providing optional command line argument `-podconfig` poinining to `.yaml` or `.yml` file that describes affinity, similar to:
+
+```yaml
+affinity:
+  nodeAffinity: ...
+```
+
+See the [detailed format for the nodes under `affinity` key here](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/)
+
+Typically the podconfig yaml file should be supplied via a config map and mounted insde Scan Jobs Manager container and path to it supplied throuh `args`:
+
+```yaml
+containers:
+  - image: 42crunch/scand-manager:v1
+    ...
+    args:
+      - -podconfig
+      - /config/podconfig.yaml
+    ...
+    volumeMounts:
+      - name: config
+        mountPath: /config
+volumes:
+  - name: config
+    configMap:
+      name: podconfig
+```
+
 ### Deployment
 
 To deploy Scan Jobs Manager, run the following commands to create a separate namespace and apply the configuration you defined:
