@@ -99,11 +99,11 @@ func readJobRequest(r *http.Request) (*Job, error) {
 	if job.Env != nil {
 		for name, value := range job.Env {
 			nameUpper := strings.ToUpper(name)
-			if strings.HasPrefix(nameUpper, "SECURITY_") {
+			if strings.HasPrefix(nameUpper, "SECURITY_" ) || strings.HasPrefix(nameUpper, "SCAN42C_") || strings.HasPrefix(nameUpper, "HTTPS_") || strings.HasPrefix(nameUpper, "HTTP_"){
 				envVars = append(envVars, newEnvVar(nameUpper, value))
 			} else {
 				log.Println("ERROR, invalid env variable in the request, must start with 'SECURITY_':", name)
-				return nil, errors.New("invalid environment variable name, must start with 'SECURITY_'")
+				return nil, errors.New("invalid environment variable name, must start with 'SECURITY_, SCAN42C_, or set HTTP proxies'")
 			}
 		}
 	}

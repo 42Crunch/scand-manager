@@ -48,7 +48,7 @@ func main() {
 
 	connectk8sClient()
 
-	log.Printf("Startig scand manager: NAMESPACE: '%s', PLATFORM_HOST: '%s', SCAND_IMAGE: '%s', EXPIRATION_TIME: '%d'",
+	log.Printf("Starting scand manager: NAMESPACE: '%s', PLATFORM_HOST: '%s', SCAND_IMAGE: '%s', EXPIRATION_TIME: '%d'",
 		namespace, platformService, scandImage, expirationTimeInt)
 
 	if podconfig != nil {
