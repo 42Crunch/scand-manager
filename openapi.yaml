@@ -201,7 +201,7 @@ components:
           maxLength: 128
           minLength: 1
         env:
-          description: Environment variables for scand-agent (must start with SECURITY_)
+          description: Environment variables for scand-agent (must start with 'SECURITY_, SCAN42C_, or set HTTP proxies)
           type: object
           additionalProperties:
             type: string
