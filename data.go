@@ -51,8 +51,9 @@ func writeErrorMsg(err error, w http.ResponseWriter, status int) {
 	json, _ := json.Marshal(map[string]string{
 		"error": fmt.Sprint(err),
 	})
-	w.WriteHeader(status)
+	
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	w.Write([]byte(json))
 }
 
