@@ -13,7 +13,7 @@ func isValidJobName(name string) bool {
 }
 
 func isValidUUID(scanToken string) bool {
-	matched, err := regexp.MatchString("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", scanToken)
+	matched, err := regexp.MatchString("^(scan_)?[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$", scanToken)
 	return err == nil && matched
 }
 
