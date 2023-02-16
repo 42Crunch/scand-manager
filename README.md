@@ -128,7 +128,7 @@ affinity:
 
 See the [detailed format for the nodes under `affinity` key here](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/)
 
-Typically the podconfig yaml file should be supplied via a config map and mounted insde Scan Jobs Manager container and path to it supplied throuh `args`:
+Typically the podconfig yaml file should be supplied via a config map and mounted inside Scan Jobs Manager container and path to it supplied through `args`: 
 
 ```yaml
 containers:
