@@ -1,4 +1,4 @@
-FROM golang:1.18.2-alpine3.15 as builder
+FROM golang:1.19.6-alpine3.17 as builder
 WORKDIR /app
 COPY go.mod go.sum *.go ./
 RUN go mod download -x
@@ -8,3 +8,4 @@ FROM busybox
 COPY --from=builder /app/scand-manager /bin/
 EXPOSE 8090
 ENTRYPOINT ["/bin/scand-manager"]
+
