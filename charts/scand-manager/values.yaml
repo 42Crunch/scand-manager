@@ -72,7 +72,24 @@ service:
   port: 8090
 
 ## Ingress for scand-manager Service
-## ref: https://kubernetes.io/docs/user-guide/ingress/
+## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
+## e.g.:
+## ingress:
+##   enabled: true
+##   className: nginx
+##   annotations:
+##     cert-manager.io/cluster-issuer: letsencrypt
+##     nginx.ingress.kubernetes.io/rewrite-target: /$2
+##     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+##   hosts:
+##     - host: scand-manager.local
+##       paths:
+##         - path: /scand(/|$)(.*)
+##           pathType: ImplementationSpecific
+##   tls:
+##     - secretName: scand-manager-tls
+##       hosts:
+##         - scand-manager.local
 #
 ingress:
   enabled: false
