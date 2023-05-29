@@ -1,0 +1,14 @@
+{{- if .Values.firewallInjection.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apifirewall-props
+  labels:
+    {{- include "scand-manager.labels" . | nindent 4 }}
+data:
+  LOG_LEVEL: {{ .Values.firewallInjection.logLevel | default "warn" | quote }}
+  LOG_DESTINATION: {{ .Values.firewallInjection.logDestination | default "PLATFORM+STDOUT" | quote }}
+  TIMEOUT_IN: {{ .Values.firewallInjection.clientTimeout | default 60 | quote }}
+  TIMEOUT_KEEPALIVE: {{ .Values.firewallInjection.keepaliveTimeout | default 60 | quote }}
+  PRESERVE_HOST: {{ .Values.firewallInjection.preserveHost | default "Off" | quote }}
+{{- end }}

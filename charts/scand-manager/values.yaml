@@ -1,9 +1,11 @@
-## Image for scand-manager Pod
+## Parameters for scand-manager Pod
 #
 image:
   repository: 42crunch/scand-manager
   pullPolicy: IfNotPresent
   tag: v1.2.2
+
+containerPort: 8090
 
 ## Parameters for on-premises conformance scan Job
 ## ref: https://docs.42crunch.com/latest/content/tasks/scan_api_conformance.htm
@@ -20,7 +22,8 @@ scanJob:
     enabled: false
     ## Affinity for conformance scan Job's Pod assignment
     ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
-    ## e.g.:
+    ##
+    ## E.g.:
     ## affinity:
     ##   nodeAffinity:
     ##     requiredDuringSchedulingIgnoredDuringExecution:
@@ -34,16 +37,26 @@ scanJob:
     affinity: {}
 
 ## Firewall injection for scand-manager Pod
-## firewall-k8s-injector must be deployed to take effect
+## The firewall-k8s-injector MUST be deployed beforehand to take effect
 ## ref: https://github.com/42Crunch/firewall-k8s-injector
+##
+## E.g.:
+## firewallInjection:
+##   enabled: true
+##   protectionToken: "<redacted>"                    # (Required) Name of K8s secret containing `protection token`. Could also be set via `--set firewallInjection.protectionToken`
+##   containerPort: 8081                              # (Required) Container port for firewall
+##   targetUrl: http://localhost:8090                 # (Required) Target URL for firewall
+##   serverName: conformance-scan-secured.local:80    # (Required) Server name for firewall
+##   httpOnly: enabled                                # (Optional, but required when missing `tlsSecretName`) Disable the SSL setting
+##   logLevel: warn                                   # (Optional) Log level for firewall
+##   logDestination: PLATFORM+STDOUT                  # (Optional) Transaction logs can be shipped to the PLATFORM or kept in FILES
+##   preserveHost: Off                                # (Optional) Pass the value of Host unchanged
+##   clientTimeout: 60                                # (Optional) Time to wait for incoming traffic (secs)
+##   keepaliveTimeout: 60                             # (Optional) Time before a connection to backend is recycled
+##   tlsSecretName: apifirewall-tls                   # (Optional, but required when missing `httpOnly`) TLS secret for firewall SSL
 #
 firewallInjection:
   enabled: false
-  protectionToken: "apifirewall-protection-token"
-  containerPort: 8081
-  envConfigmap: "apifirewall-props"
-  targetUrl: http://localhost:8090
-  serverName: scand-manager.local
 
 ## RBAC for scand-manager Pod
 ## ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
@@ -65,16 +78,22 @@ rbac:
     verbs: ["get"]
 
 ## Service for scand-manager
+## Ports will be set automatically according to `containerPort` & `firewallInjection.containerPort`
 ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
 #
 service:
   type: ClusterIP
-  port: 8081
-  podPort: 8090
+  annotations: {}
 
 ## Ingress for scand-manager Service
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
-## e.g.:
+##
+## NOTE:
+## When `firewallInjection.enabled` is set to true, at least one backend port 
+## (svcPort) must equal to `firewallInjection.containerPort`, so the ingress 
+## traffic goes to the firewall.
+##
+## E.g.:
 ## ingress:
 ##   enabled: true
 ##   className: nginx
@@ -83,14 +102,21 @@ service:
 ##     nginx.ingress.kubernetes.io/rewrite-target: /$2
 ##     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 ##   hosts:
-##     - host: scand-manager.local
+##     - host: conformance-scan-open.local      # <-- for demo, we keep the unprotected api here
 ##       paths:
 ##         - path: /scand(/|$)(.*)
 ##           pathType: ImplementationSpecific
+##           svcPort: 8090
+##     - host: conformance-scan-secured.local   # <-- direct to the secured api
+##       paths:
+##         - path: /scand(/|$)(.*)
+##           pathType: ImplementationSpecific
+##           svcPort: 8081
 ##   tls:
-##     - secretName: scand-manager-tls
+##     - secretName: conformance-scan-tls
 ##       hosts:
-##         - scand-manager.local
+##         - conformance-scan-open.local
+##         - conformance-scan-secured.local
 #
 ingress:
   enabled: false

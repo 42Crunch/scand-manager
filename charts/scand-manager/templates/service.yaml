@@ -4,16 +4,20 @@ metadata:
   name: {{ include "scand-manager.fullname" . }}
   labels:
     {{- include "scand-manager.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      {{- if .Values.firewallInjection.enabled }}
-      targetPort:  {{ .Values.firewallInjection.containerPort }}
-      {{- else }}
-      targetPort:  {{ .Values.service.podPort }}
-      {{- end }}
+    - port: {{ .Values.containerPort }}
+      name: scand-manager
       protocol: TCP
-      name: http
+    {{- if .Values.firewallInjection.enabled }}
+    - port: {{ .Values.firewallInjection.containerPort }}
+      name: apifirewall
+      protocol: TCP
+    {{- end }}
   selector:
     {{- include "scand-manager.selectorLabels" . | nindent 4 }}

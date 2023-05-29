@@ -81,11 +81,14 @@ Pod annotations
 {{- toYaml . }}
 {{- end }}
 {{- if .Values.firewallInjection.enabled }}
-xliic.com/protection-token: {{ .Values.firewallInjection.protectionToken }}
-xliic.com/http-only: "enabled"
-xliic.com/container-port: {{ .Values.firewallInjection.containerPort | quote }}
-xliic.com/env-configmap: {{ .Values.firewallInjection.envConfigmap }}
-xliic.com/target-url: {{ .Values.firewallInjection.targetUrl }}
-xliic.com/server-name: {{ .Values.firewallInjection.serverName }}
+{{- with .Values.firewallInjection }}
+xliic.com/protection-token: "apifirewall-protection-token"
+xliic.com/env-configmap: "apifirewall-props"
+xliic.com/container-port: {{ .containerPort | quote }}
+xliic.com/target-url: {{ .targetUrl }}
+xliic.com/server-name: {{ .serverName }}
+xliic.com/http-only: {{ .httpOnly }}
+xliic.com/tls-secret-name: {{ .tlsSecretName }}
+{{- end }}
 {{- end }}
 {{- end }}
