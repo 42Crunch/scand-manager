@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "scand-manager.fullname" . }}
+  labels:
+    {{- include "scand-manager.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.containerPort }}
+      name: scand-manager
+      protocol: TCP
+    {{- if .Values.firewallInjection.enabled }}
+    - port: {{ .Values.firewallInjection.containerPort }}
+      name: apifirewall
+      protocol: TCP
+    {{- end }}
+  selector:
+    {{- include "scand-manager.selectorLabels" . | nindent 4 }}

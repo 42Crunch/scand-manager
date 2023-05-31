@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scand-manager.fullname" . }}
+  labels:
+    {{- include "scand-manager.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "scand-manager.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- include "scand-manager.podAnnotations" . | nindent 8 }}
+      labels:
+        {{- include "scand-manager.selectorLabels" . | nindent 8 }}
+        {{- include "scand-manager.extraPodLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "scand-manager.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.scanJob.podConfig.enabled }}
+          args:
+            - -podconfig
+            - /config/podconfig.yaml
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PLATFORM_SERVICE
+              value: {{ .Values.scanJob.platformService }}
+            - name: SCAND_IMAGE
+              value: {{ .Values.scanJob.scandImage }}
+            - name: EXPIRATION_TIME
+              value: {{ .Values.scanJob.expirationTime | quote }}
+          {{- if .Values.scanJob.podConfig.enabled }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.scanJob.podConfig.enabled }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "scand-manager.fullname" . }}-podconfig
+      {{- end }}

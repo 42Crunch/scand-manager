@@ -1,0 +1,11 @@
+{{- if .Values.firewallInjection.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apifirewall-protection-token
+  labels:
+    {{- include "scand-manager.labels" . | nindent 4 }}
+type: Opaque
+data:
+  PROTECTION_TOKEN: {{ .Values.firewallInjection.protectionToken | b64enc | quote }}
+{{- end }}

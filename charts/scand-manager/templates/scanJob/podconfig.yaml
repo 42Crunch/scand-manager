@@ -1,0 +1,14 @@
+{{- if .Values.scanJob.podConfig.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "scand-manager.fullname" . }}-podconfig
+  labels:
+    {{- include "scand-manager.labels" . | nindent 4 }}
+data:
+  podconfig.yaml: |
+    {{- with .Values.scanJob.podConfig.affinity }}
+    affinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}

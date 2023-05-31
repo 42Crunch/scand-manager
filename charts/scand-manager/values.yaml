@@ -1,0 +1,184 @@
+## Parameters for scand-manager Pod
+#
+image:
+  repository: 42crunch/scand-manager
+  pullPolicy: IfNotPresent
+  tag: v1.2.2
+
+containerPort: 8090
+
+## Parameters for on-premises conformance scan Job
+## ref: https://docs.42crunch.com/latest/content/tasks/scan_api_conformance.htm
+#
+scanJob:
+  platformService: services.42crunch.com:8001
+  scandImage: 42crunch/scand-agent:latest
+  expirationTime: 3600
+  ## PodConfig for conformance scan Job
+  ## Currently only support Pod Affinity rule
+  ## ref: https://github.com/42Crunch/scand-manager/tree/master#optionally-configure-pod-affinity-rules
+  #
+  podConfig:
+    enabled: false
+    ## Affinity for conformance scan Job's Pod assignment
+    ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+    ##
+    ## E.g.:
+    ## affinity:
+    ##   nodeAffinity:
+    ##     requiredDuringSchedulingIgnoredDuringExecution:
+    ##       nodeSelectorTerms:
+    ##       - matchExpressions:
+    ##         - key: kubernetes.io/os
+    ##           operator: In
+    ##           values:
+    ##           - linux
+    #
+    affinity: {}
+
+## Firewall injection for scand-manager Pod
+## The firewall-k8s-injector MUST be deployed beforehand to take effect
+## ref: https://github.com/42Crunch/firewall-k8s-injector
+##
+## E.g.:
+## firewallInjection:
+##   enabled: true
+##   protectionToken: "<redacted>"                    # (Required) Name of K8s secret containing `protection token`. Could also be set via `--set firewallInjection.protectionToken`
+##   containerPort: 8081                              # (Required) Container port for firewall
+##   targetUrl: http://localhost:8090                 # (Required) Target URL for firewall
+##   serverName: conformance-scan-secured.local:80    # (Required) Server name for firewall
+##   httpOnly: enabled                                # (Optional, but required when missing `tlsSecretName`) Disable the SSL setting
+##   logLevel: warn                                   # (Optional) Log level for firewall
+##   logDestination: PLATFORM+STDOUT                  # (Optional) Transaction logs can be shipped to the PLATFORM or kept in FILES
+##   preserveHost: Off                                # (Optional) Pass the value of Host unchanged
+##   clientTimeout: 60                                # (Optional) Time to wait for incoming traffic (secs)
+##   keepaliveTimeout: 60                             # (Optional) Time before a connection to backend is recycled
+##   tlsSecretName: apifirewall-tls                   # (Optional, but required when missing `httpOnly`) TLS secret for firewall SSL
+#
+firewallInjection:
+  enabled: false
+
+## RBAC for scand-manager Pod
+## ref: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+#
+rbac:
+  enabled: true
+  serviceAccount:
+    annotations: {}
+    nameOverride: ""
+  rules:
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["get", "create", "delete", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+
+## Service for scand-manager
+## Ports will be set automatically according to `containerPort` & `firewallInjection.containerPort`
+## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+#
+service:
+  type: ClusterIP
+  annotations: {}
+
+## Ingress for scand-manager Service
+## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
+##
+## NOTE:
+## When `firewallInjection.enabled` is set to true, at least one backend port 
+## (svcPort) must equal to `firewallInjection.containerPort`, so the ingress 
+## traffic goes to the firewall.
+##
+## E.g.:
+## ingress:
+##   enabled: true
+##   className: nginx
+##   annotations:
+##     cert-manager.io/cluster-issuer: letsencrypt
+##     nginx.ingress.kubernetes.io/rewrite-target: /$2
+##     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+##   hosts:
+##     - host: conformance-scan-open.local      # <-- for demo, we keep the unprotected api here
+##       paths:
+##         - path: /scand(/|$)(.*)
+##           pathType: ImplementationSpecific
+##           svcPort: 8090
+##     - host: conformance-scan-secured.local   # <-- direct to the secured api
+##       paths:
+##         - path: /scand(/|$)(.*)
+##           pathType: ImplementationSpecific
+##           svcPort: 8081
+##   tls:
+##     - secretName: conformance-scan-tls
+##       hosts:
+##         - conformance-scan-open.local
+##         - conformance-scan-secured.local
+#
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+## Resources requests and limits for scand-manager Pod
+## ref: https://kubernetes.io/docs/user-guide/compute-resources/
+#
+resources: {}
+
+## String to partially override scand-manager names
+#
+nameOverride: ""
+
+## String to fully override scand-manager names
+#
+fullnameOverride: ""
+
+## Annotations for scand-manager Pod
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+#
+podAnnotations: {}
+
+## Extra labels for scand-manager Pod
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+#
+extraPodLabels: {}
+
+## Optionally specify an array of imagePullSecrets
+## Secrets must be manually created in the namespace
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+#
+imagePullSecrets: []
+
+## SecurityContext for scand-manager Pod and/or Containers
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+#
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+
+## Node labels for scand-manager Pod assignment
+## ref: https://kubernetes.io/docs/user-guide/node-selection/
+#
+nodeSelector: {}
+
+## Tolerations for scand-manager Pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+#
+tolerations: []
+
+## Affinity for scand-manager Pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+#
+affinity: {}
