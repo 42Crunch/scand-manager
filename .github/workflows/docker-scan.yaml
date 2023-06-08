@@ -1,0 +1,42 @@
+name: docker-scan
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: 42crunch/scand-manager
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Scan image
+        id: scan
+        uses: Azure/container-scan@v0
+        with:
+          image-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          severity-threshold: CRITICAL
+          run-quality-checks: true
+      - 
+        name: Send mail
+        if: failure()
+        run: |
+          cat <<EOF > email.txt
+          From: No Reply <no-reply@42crunch.com>
+          To: Security <security@42crunch.com>
+          Subject: Container Scan Report of ${{ github.repository }}
+          Date: $(date)
+
+          $(cat ${{ steps.scan.outputs.scan-report-path }})
+          $(cat ${{ steps.scan.outputs.check-run-url }})
+          EOF
+
+          curl \
+            --ssl-reqd smtp://smtp.gmail.com \
+            --mail-from no-reply@42crunch.com \
+            --mail-rcpt security@42crunch.com \
+            --upload-file email.txt \
+            --user ${{ secrets.MAIL_USERNAME }}:${{ secrets.MAIL_PASSWORD }}
