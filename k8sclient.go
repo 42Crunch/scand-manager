@@ -73,7 +73,19 @@ func getk8sJob(job Job) *batchv1.Job {
 		},
 	}
 	if podconfig != nil {
-		result.Spec.Template.Spec.Affinity = podconfig.Affinity.DeepCopy()
+		copy := podconfig.DeepCopy()
+
+		if copy.Affinity != nil {
+			result.Spec.Template.Spec.Affinity = copy.Affinity
+		} else {
+			log.Println("Warning: podconfig has no affinity.")
+		}
+
+		if copy.ImagePullSecrets != nil {
+			result.Spec.Template.Spec.ImagePullSecrets = copy.ImagePullSecrets
+		} else {
+			log.Println("Warning: podconfig has no ImagePullSecrets.")
+		}
 	}
 	return result
 }

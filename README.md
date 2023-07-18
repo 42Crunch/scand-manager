@@ -91,6 +91,10 @@ spec:
               value: 42crunch/scand-agent:latest
             - name: EXPIRATION_TIME
               value: "86400"
+      imagePullSecrets:
+      	  # Pull secret for scand-manager container, if required
+      	  # NOT for scand-agent jobs, that should be in podconfig.yaml
+  		  - name: privatepullsecret 
 ---
 # service
 apiVersion: v1
@@ -115,11 +119,11 @@ spec:
 | `SCAND_IMAGE`      | The version of the Docker image `scand-agent` that the service pulls and runs for the on-premises scan. The default is `42crunch/scand-agent:latest`. For more details on the available images, see the [release notes of 42Crunch Platform](https://docs.42crunch.com/latest/content/whatsnew/whats_new.htm). |
 | `EXPIRATION_TIME`  | The expiration time for the jobs (in seconds). Completed jobs are deleted after the specified time. The default value is `86400` (24 hours). Requires Kubernetes v1.21 or newer, for older Kubernetes versions jobs must be cleaned up manually using provided API or `kubectl`.                               |
 
-### Optionally configure POD affinity rules
+### Optionally configure POD rules
 
-Scan Jobs Manager can be configured to specify pod affinity for the jobs it creates.
+Scan Jobs Manager can be configured to specify pod affinity or imagePullSecrets for the jobs it creates.
 
-Pod affinity can be specified by providing optional command line argument `-podconfig` poinining to `.yaml` or `.yml` file that describes affinity, similar to:
+These can be specified by providing optional command line argument `-podconfig` poinining to `.yaml` or `.yml` file that describes affinity, similar to:
 
 ```yaml
 affinity:
@@ -127,6 +131,34 @@ affinity:
 ```
 
 See the [detailed format for the nodes under `affinity` key here](https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity/)
+
+We can also specify a pull secret array for the pod
+
+```yaml
+imagePullSecrets: 
+  name: ...
+```
+See the docs for [`imagePullSecrets` key here](https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod)
+
+An example podconfig.yaml would be:
+
+```yaml
+apiVersion: v1
+kind: PodSpec
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: scandallowed
+              operator: In
+              values:
+                - "true"
+imagePullSecrets:
+  - name: secret1
+  - name: privatepullsecret
+```
+This would have an affinity for any cluster node tagged with `scandallowed: true` and would attempt to use the k8s secrets `secret1` or `privatepullsecret` to pull `SCAND_IMAGE` from your private container registry.
 
 Typically the podconfig yaml file should be supplied via a config map and mounted inside Scan Jobs Manager container and path to it supplied through `args`: 
 
@@ -141,16 +173,36 @@ containers:
     volumeMounts:
       - name: config
         mountPath: /config
+        readOnly: true
 volumes:
   - name: config
     configMap:
-      name: podconfig
+      name: scandpodconfig
+
 ```
+
+In this example, we would create the configmap (assuming we deployed in the scand-manager namespace):
+
+
 
 ### Deployment
 
 To deploy Scan Jobs Manager, run the following commands to create a separate namespace and apply the configuration you defined:
 
-`kubectl create namespace scan`
+Create the namespace:
 
-`kubectl apply -n scan -f job-manager-config.yaml`
+`kubectl create namespace scand-manager`
+
+Create the configmap:
+
+`kubectl create configmap scandpodconfig --from-file=podconfig.yaml -n scand-manager`
+
+Create a secret, if required:
+
+* For example, this would be for a private Docker Hub repo
+
+	`kubectl create secret docker-registry privatepullsecret --docker-username={Your Username} --docker-password={Access Token} --docker-email={Your Email} -n scand-manager`
+
+Deploy:
+
+`kubectl apply -n scand-manager -f job-manager-config.yaml`
