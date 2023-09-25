@@ -6,7 +6,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -16,7 +15,6 @@ import (
 )
 
 func readPodConfig(filename string) {
-
 	if !strings.HasSuffix(filename, ".yaml") && !strings.HasSuffix(filename, ".yml") {
 		log.Fatalf("Pod config file '%s' must be a YAML file.", filename)
 	}
@@ -25,18 +23,28 @@ func readPodConfig(filename string) {
 		log.Fatalf("Can't find pod config file '%s': %s", filename, err)
 	}
 
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatalf("Can't read pod config file '%s': %s", filename, err)
 	}
 
-	podconfig = &v1.PodSpec{}
+	podconfig = &v1.PodSpec{} // Initialize podconfig
+
 	err = yaml.Unmarshal(data, podconfig)
 	if err != nil {
 		log.Fatalf("Can't parse pod config file '%s': %s", filename, err)
 	}
 
-	if podconfig.Affinity == nil {
-		log.Fatal("Affinity is required in pod config file.")
+	// Check and print the values if found
+	if podconfig.Affinity != nil {
+		log.Printf("Affinity: %+v\n", podconfig.Affinity)
+	}
+
+	if len(podconfig.ImagePullSecrets) > 0 {
+		log.Printf("ImagePullSecrets: %+v\n", podconfig.ImagePullSecrets)
+	}
+
+	if podconfig.Affinity == nil && len(podconfig.ImagePullSecrets) == 0 {
+		log.Printf("Neither Affinity nor ImagePullSecrets could be found in %s.", filename)
 	}
 }
