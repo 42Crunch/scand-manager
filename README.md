@@ -121,7 +121,7 @@ spec:
 
 ### Optionally configure POD rules
 
-Scan Jobs Manager can be configured to specify pod affinity or imagePullSecrets for the jobs it creates.
+Scand Manager can be configured to specify pod affinity, securityContext, resources, or imagePullSecrets for the jobs it creates.
 
 These can be specified by providing optional command line argument `-podconfig` poinining to `.yaml` or `.yml` file that describes affinity, similar to:
 
@@ -140,11 +140,30 @@ imagePullSecrets:
 ```
 See the docs for [`imagePullSecrets` key here](https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod)
 
+Launched scand-agent container restrictions can also be supplied
+
+```yaml
+containers:
+  - securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      capabilities:
+        drop:
+          - ALL
+    resources:
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+```
+See the docs for [`securityContext` key here](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/) and [`resources` key here](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/)
+
 An example podconfig.yaml would be:
 
 ```yaml
 apiVersion: v1
-kind: PodSpec
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -157,8 +176,16 @@ affinity:
 imagePullSecrets:
   - name: secret1
   - name: privatepullsecret
+containers:
+  - securityContext:
+      runAsUser: 1000
+    resources:
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
 ```
-This would have an affinity for any cluster node tagged with `scandallowed: true` and would attempt to use the k8s secrets `secret1` or `privatepullsecret` to pull `SCAND_IMAGE` from your private container registry.
+This would have an affinity for any cluster node tagged with `scandallowed: true` and would attempt to use the k8s secrets `secret1` or `privatepullsecret` to pull `SCAND_IMAGE` from your private container registry.  This would also specify resource limits and associated securityContexts.
 
 Typically the podconfig yaml file should be supplied via a config map and mounted inside Scan Jobs Manager container and path to it supplied through `args`: 
 

@@ -44,7 +44,12 @@ func readPodConfig(filename string) {
 		log.Printf("ImagePullSecrets: %+v\n", podconfig.ImagePullSecrets)
 	}
 
-	if podconfig.Affinity == nil && len(podconfig.ImagePullSecrets) == 0 {
-		log.Printf("Neither Affinity nor ImagePullSecrets could be found in %s.", filename)
+	// Check if containers are defined, and if so, print the values
+	if len(podconfig.Containers) > 0 {
+		log.Printf("Container Configurations: %+v\n", podconfig.Containers)
+	}
+
+	if podconfig.Affinity == nil && len(podconfig.ImagePullSecrets) == 0 && len(podconfig.Containers) == 0 {
+		log.Printf("Neither Affinity, ImagePullSecrets, nor Container Configurations could be found in %s.", filename)
 	}
 }

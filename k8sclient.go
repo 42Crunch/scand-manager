@@ -72,6 +72,13 @@ func getk8sJob(job Job) *batchv1.Job {
 			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
+
+	// Merge securityContext and resources from podconfig only if it's defined
+	if podconfig != nil && len(podconfig.Containers) > 0 {
+		result.Spec.Template.Spec.Containers[0].SecurityContext = podconfig.Containers[0].SecurityContext
+		result.Spec.Template.Spec.Containers[0].Resources = podconfig.Containers[0].Resources
+	}
+
 	if podconfig != nil {
 		copy := podconfig.DeepCopy()
 
