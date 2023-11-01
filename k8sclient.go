@@ -73,12 +73,6 @@ func getk8sJob(job Job) *batchv1.Job {
 		},
 	}
 
-	// Merge securityContext and resources from podconfig only if it's defined
-	if podconfig != nil && len(podconfig.Containers) > 0 {
-		result.Spec.Template.Spec.Containers[0].SecurityContext = podconfig.Containers[0].SecurityContext
-		result.Spec.Template.Spec.Containers[0].Resources = podconfig.Containers[0].Resources
-	}
-
 	if podconfig != nil {
 		copy := podconfig.DeepCopy()
 
@@ -92,6 +86,14 @@ func getk8sJob(job Job) *batchv1.Job {
 			result.Spec.Template.Spec.ImagePullSecrets = copy.ImagePullSecrets
 		} else {
 			log.Println("Warning: podconfig has no ImagePullSecrets.")
+		}
+		if copy.Containers != nil {
+			if len(copy.Containers) > 0 {
+				result.Spec.Template.Spec.Containers[0].SecurityContext = copy.Containers[0].SecurityContext
+				result.Spec.Template.Spec.Containers[0].Resources = copy.Containers[0].Resources
+			} else {
+				log.Println("Warning: podconfig has empty Containers.")
+			}
 		}
 	}
 	return result
