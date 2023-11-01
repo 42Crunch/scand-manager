@@ -87,13 +87,12 @@ func getk8sJob(job Job) *batchv1.Job {
 		} else {
 			log.Println("Warning: podconfig has no ImagePullSecrets.")
 		}
-		if copy.Containers != nil {
-			if len(copy.Containers) > 0 {
-				result.Spec.Template.Spec.Containers[0].SecurityContext = copy.Containers[0].SecurityContext
-				result.Spec.Template.Spec.Containers[0].Resources = copy.Containers[0].Resources
-			} else {
-				log.Println("Warning: podconfig has empty Containers.")
-			}
+
+		if copy.Containers != nil && len(copy.Containers) > 0 {
+			result.Spec.Template.Spec.Containers[0].SecurityContext = copy.Containers[0].SecurityContext
+			result.Spec.Template.Spec.Containers[0].Resources = copy.Containers[0].Resources
+		} else {
+			log.Println("Warning: podconfig has empty Containers.")
 		}
 	}
 	return result
