@@ -72,6 +72,7 @@ func getk8sJob(job Job) *batchv1.Job {
 			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
+
 	if podconfig != nil {
 		copy := podconfig.DeepCopy()
 
@@ -85,6 +86,13 @@ func getk8sJob(job Job) *batchv1.Job {
 			result.Spec.Template.Spec.ImagePullSecrets = copy.ImagePullSecrets
 		} else {
 			log.Println("Warning: podconfig has no ImagePullSecrets.")
+		}
+
+		if copy.Containers != nil && len(copy.Containers) > 0 {
+			result.Spec.Template.Spec.Containers[0].SecurityContext = copy.Containers[0].SecurityContext
+			result.Spec.Template.Spec.Containers[0].Resources = copy.Containers[0].Resources
+		} else {
+			log.Println("Warning: podconfig has empty Containers.")
 		}
 	}
 	return result
