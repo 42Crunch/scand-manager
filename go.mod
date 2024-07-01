@@ -1,11 +1,11 @@
 module github.com/42crunch/scand-manager
 
-go 1.21
+go 1.22
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/google/uuid v1.3.0
-	github.com/gorilla/mux v1.8.0
+	github.com/google/uuid v1.6.0
+	github.com/gorilla/mux v1.8.1
 	k8s.io/api v0.26.10
 	k8s.io/apimachinery v0.26.10
 	k8s.io/client-go v0.26.10
