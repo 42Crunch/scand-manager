@@ -19,19 +19,21 @@ import (
 )
 
 type JobRequest struct {
-	Token           string
-	Name            string
-	ExpirationTime  int64
-	PlatformService string
-	ScandImage      string
-	Env             map[string]string
+	Token                string
+	Name                 string
+	ExpirationTime       int64
+	PlatformService      string
+	ScandImage           string
+	ScandImagePullPolicy string
+	Env                  map[string]string
 }
 
 type Job struct {
-	Name           string
-	ExpirationTime int64
-	ScandImage     string
-	Env            []v1.EnvVar
+	Name                 string
+	ExpirationTime       int64
+	ScandImage           string
+	ScandImagePullPolicy string
+	Env                  []v1.EnvVar
 }
 
 func sendResponse(w http.ResponseWriter, response map[string]interface{}) {
@@ -51,20 +53,20 @@ func writeErrorMsg(err error, w http.ResponseWriter, status int) {
 	json, _ := json.Marshal(map[string]string{
 		"error": fmt.Sprint(err),
 	})
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write([]byte(json))
 }
 
 func readJobRequest(r *http.Request) (*Job, error) {
-
 	// set default values which can be overriden by the request
 	job := JobRequest{
-		Name:            fmt.Sprintf("scand-%s", uuid.New().String()),
-		ExpirationTime:  expirationTimeInt,
-		PlatformService: platformService,
-		ScandImage:      scandImage,
+		Name:                 fmt.Sprintf("scand-%s", uuid.New().String()),
+		ExpirationTime:       expirationTimeInt,
+		PlatformService:      platformService,
+		ScandImage:           scandImage,
+		ScandImagePullPolicy: scandImage_pullPolicy,
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&job)
@@ -93,6 +95,11 @@ func readJobRequest(r *http.Request) (*Job, error) {
 		return nil, errors.New("invalid scand image")
 	}
 
+	if !isValidScandImagePullPolicy(job.ScandImagePullPolicy) {
+		log.Println("ERROR, failed to launch a job, invalid scand image pull policy:", job.ScandImagePullPolicy)
+		return nil, errors.New("invalid scand image pull policy")
+	}
+
 	var envVars []v1.EnvVar
 	envVars = append(envVars, newEnvVar("SCAN_TOKEN", job.Token))
 	envVars = append(envVars, newEnvVar("PLATFORM_SERVICE", job.PlatformService))
@@ -100,7 +107,7 @@ func readJobRequest(r *http.Request) (*Job, error) {
 	if job.Env != nil {
 		for name, value := range job.Env {
 			nameUpper := strings.ToUpper(name)
-			if strings.HasPrefix(nameUpper, "SECURITY_" ) || strings.HasPrefix(nameUpper, "SCAN42C_") || strings.HasPrefix(nameUpper, "HTTPS_") || strings.HasPrefix(nameUpper, "HTTP_"){
+			if strings.HasPrefix(nameUpper, "SECURITY_") || strings.HasPrefix(nameUpper, "SCAN42C_") || strings.HasPrefix(nameUpper, "HTTPS_") || strings.HasPrefix(nameUpper, "HTTP_") {
 				envVars = append(envVars, newEnvVar(name, value))
 			} else {
 				log.Println("ERROR, invalid env variable in the request, must start with 'SECURITY_, SCAN42C_, or set HTTP proxies' ", name)
@@ -110,10 +117,11 @@ func readJobRequest(r *http.Request) (*Job, error) {
 	}
 
 	return &Job{
-		Name:           job.Name,
-		ExpirationTime: job.ExpirationTime,
-		ScandImage:     job.ScandImage,
-		Env:            envVars,
+		Name:                 job.Name,
+		ExpirationTime:       job.ExpirationTime,
+		ScandImage:           job.ScandImage,
+		ScandImagePullPolicy: job.ScandImagePullPolicy,
+		Env:                  envVars,
 	}, nil
 }
 

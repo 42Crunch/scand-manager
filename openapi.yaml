@@ -52,7 +52,8 @@ paths:
                   name: scand-foo
                   expirationTime: 777
                   platformService: protection.dev.42crunch.com:8001
-                  scandImage: 42crunch/scand-agent:latest
+                  scandImage: 42crunch/scand-agent:v2
+                  ScandImagePullPolicy: Always
                   env:
                     SECURITY_FOO: bar
                     SECURITY_BAZ: bam
@@ -200,6 +201,13 @@ components:
           pattern: ^\P{Cc}+$
           maxLength: 128
           minLength: 1
+        ScandImagePullPolicy:
+          description: Pull policy for the image - Always, Never, IfNotPresent
+          type: string
+          enum:
+            - Always
+            - Never
+            - IfNotPresent
         env:
           description: Environment variables for scand-agent (must start with 'SECURITY_, SCAN42C_, or set HTTP proxies)
           type: object

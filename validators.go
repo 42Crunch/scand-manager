@@ -5,7 +5,11 @@
 
 package main
 
-import "regexp"
+import (
+	"regexp"
+
+	v1 "k8s.io/api/core/v1"
+)
 
 func isValidJobName(name string) bool {
 	matched, err := regexp.MatchString("^scand-[0-9a-zA-Z-]{1,36}$", name)
@@ -25,4 +29,13 @@ func isValidHostnameAndPort(service string) bool {
 func isValidScandImage(image string) bool {
 	matched, err := regexp.MatchString("^\\P{Cc}+${1,128}$", image)
 	return err == nil && matched
+}
+
+func isValidScandImagePullPolicy(policy string) bool {
+	switch policy {
+	case string(v1.PullAlways), string(v1.PullIfNotPresent), string(v1.PullNever):
+		return true
+	default:
+		return false
+	}
 }

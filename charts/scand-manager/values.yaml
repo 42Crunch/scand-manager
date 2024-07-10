@@ -1,9 +1,9 @@
 ## Parameters for scand-manager Pod
 #
 image:
-  repository: 42crunch/scand-manager
+  repository: stubbs/scand-manager
   pullPolicy: IfNotPresent
-  tag: v1.2.2
+  tag: latest
 
 containerPort: 8090
 
@@ -12,8 +12,9 @@ containerPort: 8090
 #
 scanJob:
   platformService: services.42crunch.com:8001
-  scandImage: 42crunch/scand-agent:latest
+  scandImage: 42crunch/scand-agent:v2
   expirationTime: 3600
+  pullPolicy: IfNotPresent
   ## PodConfig for conformance scan Job
   ## Currently only support Pod Affinity rule
   ## ref: https://github.com/42Crunch/scand-manager/tree/master#optionally-configure-pod-affinity-rules

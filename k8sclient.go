@@ -60,9 +60,10 @@ func getk8sJob(job Job) *batchv1.Job {
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						{
-							Name:  job.Name,
-							Image: job.ScandImage,
-							Env:   job.Env,
+							Name:            job.Name,
+							Image:           job.ScandImage,
+							Env:             job.Env,
+							ImagePullPolicy: v1.PullPolicy(job.ScandImagePullPolicy),
 						},
 					},
 					RestartPolicy: v1.RestartPolicyNever,
