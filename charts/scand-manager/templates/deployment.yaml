@@ -52,6 +52,8 @@ spec:
               value: {{ .Values.scanJob.scandImage }}
             - name: EXPIRATION_TIME
               value: {{ .Values.scanJob.expirationTime | quote }}
+            - name: SCAND_IMAGE_PULLPOLICY
+              value: {{ .Values.scanJob.pullPolicy }}
           {{- if .Values.scanJob.podConfig.enabled }}
           volumeMounts:
             - name: config

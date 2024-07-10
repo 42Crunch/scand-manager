@@ -29,6 +29,12 @@ func readEnvConfig() {
 		scandImage = defaultScandImage
 	}
 
+	scandImage_pullPolicy = os.Getenv("SCAND_IMAGE_PULLPOLICY")
+	if scandImage_pullPolicy == "" {
+		log.Printf("No SCAND_IMAGE_PULLPOLICY env variable is set, using default: %s", defaultScandImagepullPolicy)
+		scandImage_pullPolicy = defaultScandImagepullPolicy
+	}
+
 	expirationTime := os.Getenv("EXPIRATION_TIME")
 	if expirationTime == "" {
 		log.Printf("No EXPIRATION_TIME env variable is set, using default: %d", defaultExpirationTime)

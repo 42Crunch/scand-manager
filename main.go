@@ -25,11 +25,13 @@ import (
 
 const defaultplatformService = "services.us.42crunch.cloud:8001"
 const defaultScandImage = "42crunch/scand-agent:latest"
+const defaultScandImagepullPolicy = "IfNotPresent"
 const defaultExpirationTime = 86400 // expire completed jobs after 24h
 
 var namespace string
 var platformService string
 var scandImage string
+var scandImage_pullPolicy string
 var expirationTimeInt int64
 var clientset *kubernetes.Clientset
 var podconfig *v1.PodSpec
