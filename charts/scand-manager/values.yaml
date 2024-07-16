@@ -1,9 +1,9 @@
 ## Parameters for scand-manager Pod
 #
 image:
-  repository: stubbs/scand-manager
+  repository: 42crunch/scand-manager
   pullPolicy: IfNotPresent
-  tag: latest
+  tag: v1.5.0
 
 containerPort: 8090
 

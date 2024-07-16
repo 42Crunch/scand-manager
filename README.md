@@ -16,6 +16,10 @@ Scan Jobs Manager is a service that exposes a REST API for starting and deleting
 
 To add Scan Jobs Manager to your Kubernetes environment, you must first configure some details for the service and then deploy it.
 
+## Helm
+We have provided Helm scripts [here](charts/scand-manager/)
+
+## Manual Deployment
 ### Configure the service
 
 1. Create a file called `job-manager-config.yaml` with the following contents:
@@ -76,7 +80,7 @@ spec:
     spec:
       serviceAccountName: api-sa
       containers:
-        - image: 42crunch/scand-manager:v1
+        - image: 42crunch/scand-manager:v1.5.0
           name: scand-job-manager
           ports:
             - containerPort: 8090
@@ -89,6 +93,8 @@ spec:
               value: services.us.42crunch.cloud:8001
             - name: SCAND_IMAGE
               value: 42crunch/scand-agent:latest
+            - name: SCAND_IMAGE_PULLPOLICY
+              value: Always
             - name: EXPIRATION_TIME
               value: "86400"
       imagePullSecrets:
@@ -117,6 +123,7 @@ spec:
 | `NAMESPACE`        | The namespace where to create the Conformance Scan Jobs.                                                                                                                                                                                                                                                       |
 | `PLATFORM_SERVICE` | The hostname and port for that Conformance Scan uses to connect to 42Crunch Platform. The default hostname for most users is `services.us.42crunch.cloud:8001`.                                                                                                                                                |
 | `SCAND_IMAGE`      | The version of the Docker image `scand-agent` that the service pulls and runs for the on-premises scan. The default is `42crunch/scand-agent:latest`. For more details on the available images, see the [release notes of 42Crunch Platform](https://docs.42crunch.com/latest/content/whatsnew/whats_new.htm). |
+| `SCAND_IMAGE_PULLPOLICY`      | The imagePullPolicy associated with the scand-agent image that gets used.  This can be Never, Always, or ifNotPresent |
 | `EXPIRATION_TIME`  | The expiration time for the jobs (in seconds). Completed jobs are deleted after the specified time. The default value is `86400` (24 hours). Requires Kubernetes v1.21 or newer, for older Kubernetes versions jobs must be cleaned up manually using provided API or `kubectl`.                               |
 
 ### Optionally configure POD rules
