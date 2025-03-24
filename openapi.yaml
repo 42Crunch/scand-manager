@@ -170,9 +170,7 @@ paths:
                 properties:
                   status:
                     type: string
-                    maxLength: 2
-                    minLength: 2
-                    pattern: ^ok$
+                    enum: ["OK"]
                 additionalProperties: false
                 required:
                   - status
