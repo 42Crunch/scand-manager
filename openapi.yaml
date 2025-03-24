@@ -154,7 +154,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
+  /health:
+    get:
+      description: Health check
+      operationId: HealthCheck
+      tags:
+        - health
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    maxLength: 2
+                    minLength: 2
+                    pattern: ^ok$
+                additionalProperties: false
+                required:
+                  - status
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     JobName:
