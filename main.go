@@ -61,6 +61,7 @@ func main() {
 	r.HandleFunc("/api/job", jobLaunch).Methods("POST")
 	r.HandleFunc("/api/job/{name}", jobDelete).Methods("DELETE")
 	r.HandleFunc("/api/logs/{name}", jobLogs).Methods("GET")
+	r.HandleFunc("/health", healthCheck).Methods("GET")
 
 	http.Handle("/", r)
 	srv := &http.Server{
@@ -217,4 +218,10 @@ func jobLogs(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write(buf.Bytes())
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	sendResponse(w, map[string]interface{}{
+		"status": "OK",
+	})
 }

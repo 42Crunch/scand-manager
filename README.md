@@ -80,6 +80,22 @@ spec:
           name: scand-job-manager
           ports:
             - containerPort: 8090
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           env:
             - name: NAMESPACE
               valueFrom:
@@ -118,6 +134,30 @@ spec:
 | `PLATFORM_SERVICE` | The hostname and port for that Conformance Scan uses to connect to 42Crunch Platform. The default hostname for most users is `services.us.42crunch.cloud:8001`.                                                                                                                                                |
 | `SCAND_IMAGE`      | The version of the Docker image `scand-agent` that the service pulls and runs for the on-premises scan. The default is `42crunch/scand-agent:latest`. For more details on the available images, see the [release notes of 42Crunch Platform](https://docs.42crunch.com/latest/content/whatsnew/whats_new.htm). |
 | `EXPIRATION_TIME`  | The expiration time for the jobs (in seconds). Completed jobs are deleted after the specified time. The default value is `86400` (24 hours). Requires Kubernetes v1.21 or newer, for older Kubernetes versions jobs must be cleaned up manually using provided API or `kubectl`.                               |
+
+### Healthcheck
+
+If you would like to configure a healthcheck, there is a /health endpoint that will return 200 `{"status":"OK"}` if the pod is healthy.  In the example above, we added the following to  `spec: containers`
+
+``` yaml
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+```
+
 
 ### Optionally configure POD rules
 
