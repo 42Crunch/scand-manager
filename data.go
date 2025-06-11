@@ -96,6 +96,16 @@ func readJobRequest(r *http.Request) (*Job, error) {
 		return nil, errors.New("invalid scand image")
 	}
 
+	if job.ExpirationTime <= 0 {
+		log.Println("ERROR, failed to launch a job, invalid expiration time:", job.ExpirationTime)
+		return nil, errors.New("invalid expiration time, must be greater than 0")
+	}
+
+	if job.ExpirationTime > maxExpirationTime {
+		log.Println("ERROR, failed to launch a job, expiration time too long:", job.ExpirationTime)
+		return nil, fmt.Errorf("expiration time too long, must be less than %d seconds", maxExpirationTime)
+	}
+
 	var envVars []v1.EnvVar
 	envVars = append(envVars, newEnvVar("SCAN_TOKEN", job.Token))
 	envVars = append(envVars, newEnvVar("PLATFORM_SERVICE", job.PlatformService))

@@ -39,5 +39,13 @@ func readEnvConfig() {
 		if err != nil {
 			log.Fatalf("ERROR, invalid EXPIRATION_TIME env var: '%s': %s", expirationTime, err)
 		}
+
+		if expirationTimeInt < 0 {
+			log.Fatalf("ERROR, invalid EXPIRATION_TIME env var: '%d', must be >= 0", expirationTimeInt)
+		}
+
+		if expirationTimeInt > maxExpirationTime {
+			log.Fatalf("ERROR, invalid EXPIRATION_TIME env var: '%d', must be <= %d", expirationTimeInt, maxExpirationTime)
+		}
 	}
 }
