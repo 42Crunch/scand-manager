@@ -75,7 +75,6 @@ func main() {
 }
 
 func jobLaunch(w http.ResponseWriter, r *http.Request) {
-
 	job, err := readJobRequest(r)
 	if err != nil {
 		writeErrorMsg(err, w, http.StatusBadRequest)
