@@ -51,13 +51,16 @@ func writeErrorMsg(err error, w http.ResponseWriter, status int) {
 	json, _ := json.Marshal(map[string]string{
 		"error": fmt.Sprint(err),
 	})
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write([]byte(json))
 }
 
 func readJobRequest(r *http.Request) (*Job, error) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		return nil, errors.New("Content-Type must be application/json")
+	}
 
 	// set default values which can be overriden by the request
 	job := JobRequest{
@@ -67,7 +70,11 @@ func readJobRequest(r *http.Request) (*Job, error) {
 		ScandImage:      scandImage,
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&job)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	defer r.Body.Close()
+	err := decoder.Decode(&job)
+
 	if err != nil {
 		log.Println("ERROR, failed to launch a job, can't decode the request:", err)
 		return nil, errors.New("invalid request")
@@ -93,6 +100,16 @@ func readJobRequest(r *http.Request) (*Job, error) {
 		return nil, errors.New("invalid scand image")
 	}
 
+	if job.ExpirationTime <= 0 {
+		log.Println("ERROR, failed to launch a job, invalid expiration time:", job.ExpirationTime)
+		return nil, errors.New("invalid expiration time, must be greater than 0")
+	}
+
+	if job.ExpirationTime > maxExpirationTime {
+		log.Println("ERROR, failed to launch a job, expiration time too long:", job.ExpirationTime)
+		return nil, fmt.Errorf("expiration time too long, must be less than %d seconds", maxExpirationTime)
+	}
+
 	var envVars []v1.EnvVar
 	envVars = append(envVars, newEnvVar("SCAN_TOKEN", job.Token))
 	envVars = append(envVars, newEnvVar("PLATFORM_SERVICE", job.PlatformService))
@@ -100,7 +117,7 @@ func readJobRequest(r *http.Request) (*Job, error) {
 	if job.Env != nil {
 		for name, value := range job.Env {
 			nameUpper := strings.ToUpper(name)
-			if strings.HasPrefix(nameUpper, "SECURITY_" ) || strings.HasPrefix(nameUpper, "SCAN42C_") || strings.HasPrefix(nameUpper, "HTTPS_") || strings.HasPrefix(nameUpper, "HTTP_"){
+			if strings.HasPrefix(nameUpper, "SECURITY_") || strings.HasPrefix(nameUpper, "SCAN42C_") || strings.HasPrefix(nameUpper, "HTTPS_") || strings.HasPrefix(nameUpper, "HTTP_") {
 				envVars = append(envVars, newEnvVar(name, value))
 			} else {
 				log.Println("ERROR, invalid env variable in the request, must start with 'SECURITY_, SCAN42C_, or set HTTP proxies' ", name)

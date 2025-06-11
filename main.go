@@ -26,6 +26,7 @@ import (
 const defaultplatformService = "services.us.42crunch.cloud:8001"
 const defaultScandImage = "42crunch/scand-agent:latest"
 const defaultExpirationTime = 86400 // expire completed jobs after 24h
+const maxExpirationTime = 604800    // max expiration time is 7 days
 
 var namespace string
 var platformService string
@@ -75,7 +76,6 @@ func main() {
 }
 
 func jobLaunch(w http.ResponseWriter, r *http.Request) {
-
 	job, err := readJobRequest(r)
 	if err != nil {
 		writeErrorMsg(err, w, http.StatusBadRequest)

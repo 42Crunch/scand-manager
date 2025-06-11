@@ -23,6 +23,6 @@ func isValidHostnameAndPort(service string) bool {
 }
 
 func isValidScandImage(image string) bool {
-	matched, err := regexp.MatchString("^\\P{Cc}+${1,128}$", image)
+	matched, err := regexp.MatchString("^\\P{Cc}{1,128}$", image)
 	return err == nil && matched
 }
