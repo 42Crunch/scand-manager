@@ -70,7 +70,11 @@ func readJobRequest(r *http.Request) (*Job, error) {
 		ScandImage:      scandImage,
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&job)
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	defer r.Body.Close()
+	err := decoder.Decode(&job)
+
 	if err != nil {
 		log.Println("ERROR, failed to launch a job, can't decode the request:", err)
 		return nil, errors.New("invalid request")
