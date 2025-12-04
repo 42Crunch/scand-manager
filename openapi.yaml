@@ -206,8 +206,8 @@ components:
         token:
           description: On-premises scan token
           type: string
-          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
-          maxLength: 36
+          pattern: "^(scan_)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          maxLength: 41
           minLength: 36
         name:
           $ref: "#/components/schemas/JobName"
@@ -215,28 +215,33 @@ components:
           description: Expiration time for a job (in seconds)
           type: integer
           maximum: 604800
-          minimum: 0
+          minimum: 1
           format: int32
         platformService:
           description: Hostname and port for connecting to 42 Crunch Platform
           type: string
-          pattern: ^\P{Cc}+$
+          pattern: "^[^:]+:[0-9]{3,5}$"
           maxLength: 128
           minLength: 3
         scandImage:
           description: Docker image for scand-agent
           type: string
-          pattern: ^\P{Cc}+$
+          pattern: "^\\P{Cc}{1,128}$"
           maxLength: 128
           minLength: 1
         env:
-          description: Environment variables for scand-agent (must start with 'SECURITY_, SCAN42C_, or set HTTP proxies)
+          description: Environment variables for scand-agent (must start with SECURITY_, SCAN42C_, or HTTP(S)_)
           type: object
           additionalProperties:
             type: string
             pattern: ^\P{Cc}+$
             minLength: 0
             maxLength: 512
+          example:
+            HTTPS_PROXY: http://proxy.example.com:8080
+            HTTPS_PROXY_API: http://proxy-api.example.com:8080
+            SECURITY_FOO: bar
+            SCAN42C_FEATURE_FLAG: enabled
       additionalProperties: false
       required:
         - token
