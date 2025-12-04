@@ -53,31 +53,35 @@ func readEnvConfig() {
 	httpProxy := os.Getenv("HTTP_PROXY")
 	if httpProxy != "" {
 		defaultHTTPProxy = httpProxy
-	} else {
-		defaultHTTPProxy = os.Getenv("http_proxy")
 	}
 
 	// default HTTPS proxy
 	httpsProxy := os.Getenv("HTTPS_PROXY")
 	if httpsProxy != "" {
 		defaultHTTPSProxy = httpsProxy
-	} else {
-		defaultHTTPSProxy = os.Getenv("https_proxy")
 	}
 
 	// default HTTP proxy for API calls
 	httpProxyAPI := os.Getenv("HTTP_PROXY_API")
 	if httpProxyAPI != "" {
 		defaultHTTPProxyAPI = httpProxyAPI
-	} else {
-		defaultHTTPProxyAPI = os.Getenv("http_proxy_api")
 	}
 
 	// default HTTPS proxy for API calls
 	httpsProxyAPI := os.Getenv("HTTPS_PROXY_API")
 	if httpsProxyAPI != "" {
 		defaultHTTPSProxyAPI = httpsProxyAPI
-	} else {
-		defaultHTTPSProxyAPI = os.Getenv("https_proxy_api")
+	}
+
+	// default NO_PROXY
+	noProxy := os.Getenv("NO_PROXY")
+	if noProxy != "" {
+		defaultNoProxy = noProxy
+	}
+
+	// default NO_PROXY_API
+	noProxyAPI := os.Getenv("NO_PROXY_API")
+	if noProxyAPI != "" {
+		defaultNoProxyAPI = noProxyAPI
 	}
 }

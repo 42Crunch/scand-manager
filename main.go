@@ -40,6 +40,8 @@ var defaultHTTPProxy string
 var defaultHTTPSProxy string
 var defaultHTTPProxyAPI string
 var defaultHTTPSProxyAPI string
+var defaultNoProxy string
+var defaultNoProxyAPI string
 
 func main() {
 

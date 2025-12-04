@@ -21,11 +21,15 @@ scanJob:
   ##   httpsProxy: "https://proxy.example.com:8080"
   ##   httpProxyApi: "http://proxy.example.com:8080"
   ##   httpsProxyApi: "https://proxy.example.com:8080"
+  ##   noProxy: "example.com,192.168.1.0/24"
+  ##   noProxyApi: "example.com,192.168.1.0/24"
   proxy:
     httpProxy: ""
     httpsProxy: ""
     httpProxyApi: ""
     httpsProxyApi: ""
+    noProxy: ""
+    noProxyApi: ""
   ## PodConfig for conformance scan Job
   ## Currently only support Pod Affinity rule
   ## ref: https://github.com/42Crunch/scand-manager/tree/master#optionally-configure-pod-affinity-rules

@@ -94,6 +94,10 @@ spec:
               value: http://api-proxy.example:8080
             - name: HTTPS_PROXY_API
               value: http://api-proxy.example:8443
+            - name: NO_PROXY
+              value: "example.com,192.168.1.0/24"
+            - name: NO_PROXY_API
+              value: "example.com,192.168.1.0/24"
       imagePullSecrets:
           # Pull secret for scand-manager container, if required
           # NOT for scand-agent jobs, that should be in podconfig.yaml
