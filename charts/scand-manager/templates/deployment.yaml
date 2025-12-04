@@ -68,6 +68,15 @@ spec:
               value: {{ .Values.scanJob.scandImage }}
             - name: EXPIRATION_TIME
               value: {{ .Values.scanJob.expirationTime | quote }}
+            # Default proxies for launched scand-agent jobs
+            - name: HTTP_PROXY
+              value: {{ .Values.scanJob.proxy.httpProxy | quote }}
+            - name: HTTPS_PROXY
+              value: {{ .Values.scanJob.proxy.httpsProxy | quote }}
+            - name: HTTP_PROXY_API
+              value: {{ .Values.scanJob.proxy.httpProxyApi | quote }}
+            - name: HTTPS_PROXY_API
+              value: {{ .Values.scanJob.proxy.httpsProxyApi | quote }}
           {{- if .Values.scanJob.podConfig.enabled }}
           volumeMounts:
             - name: config

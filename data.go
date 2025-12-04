@@ -114,14 +114,44 @@ func readJobRequest(r *http.Request) (*Job, error) {
 	envVars = append(envVars, newEnvVar("SCAN_TOKEN", job.Token))
 	envVars = append(envVars, newEnvVar("PLATFORM_SERVICE", job.PlatformService))
 
+	// Helper to add a proxy env vars only if they have a value
+	addProxyEnv := func(name, value string) {
+		if value == "" {
+			return
+		}
+		envVars = append(envVars, newEnvVar(name, value))
+	}
+
+	// Deployment-time defaults (from scand-manager env)
+	addProxyEnv("HTTP_PROXY", defaultHTTPProxy)
+	addProxyEnv("HTTPS_PROXY", defaultHTTPSProxy)
+	addProxyEnv("HTTP_PROXY_API", defaultHTTPProxyAPI)
+	addProxyEnv("HTTPS_PROXY_API", defaultHTTPSProxyAPI)
+
+	// Helper function to set or override an env var in envVars
+	setOrOverrideEnv := func(name, value string) {
+		for i := range envVars {
+			if envVars[i].Name == name {
+				envVars[i].Value = value
+				return
+			}
+		}
+		envVars = append(envVars, newEnvVar(name, value))
+	}
+
 	if job.Env != nil {
 		for name, value := range job.Env {
 			nameUpper := strings.ToUpper(name)
-			if strings.HasPrefix(nameUpper, "SECURITY_") || strings.HasPrefix(nameUpper, "SCAN42C_") || strings.HasPrefix(nameUpper, "HTTPS_") || strings.HasPrefix(nameUpper, "HTTP_") {
-				envVars = append(envVars, newEnvVar(name, value))
+			if strings.HasPrefix(nameUpper, "SECURITY_") ||
+				strings.HasPrefix(nameUpper, "SCAN42C_") ||
+				strings.HasPrefix(nameUpper, "HTTPS_") ||
+				strings.HasPrefix(nameUpper, "HTTP_") {
+
+				// Per-job override (or addition)
+				setOrOverrideEnv(name, value)
 			} else {
-				log.Println("ERROR, invalid env variable in the request, must start with 'SECURITY_, SCAN42C_, or set HTTP proxies' ", name)
-				return nil, errors.New("invalid environment variable name, must start with 'SECURITY_, SCAN42C_, or set HTTP proxies'")
+				log.Println("ERROR, invalid env variable in the request, must start with 'SECURITY_, SCAN42C_, or HTTP(S)_' ", name)
+				return nil, errors.New("invalid environment variable name, must start with 'SECURITY_, SCAN42C_, or HTTP(S)_'")
 			}
 		}
 	}
