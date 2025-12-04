@@ -107,9 +107,19 @@ spec:
               value: 42crunch/scand-agent:latest
             - name: EXPIRATION_TIME
               value: "86400"
+            # Example proxy settings that can be overridden as needed during job creation. 
+            # These will be passed to scand-agent jobs by default if specified
+            - name: HTTP_PROXY
+              value: http://corp-proxy.example:8080
+            - name: HTTPS_PROXY
+              value: http://corp-proxy.example:8443
+            - name: HTTP_PROXY_API
+              value: http://api-proxy.example:8080
+            - name: HTTPS_PROXY_API
+              value: http://api-proxy.example:8443
       imagePullSecrets:
-      	  # Pull secret for scand-manager container, if required
-      	  # NOT for scand-agent jobs, that should be in podconfig.yaml
+          # Pull secret for scand-manager container, if required
+          # NOT for scand-agent jobs, that should be in podconfig.yaml
   		  - name: privatepullsecret 
 ---
 # service
@@ -134,6 +144,7 @@ spec:
 | `PLATFORM_SERVICE` | The hostname and port for that Conformance Scan uses to connect to 42Crunch Platform. The default hostname for most users is `services.us.42crunch.cloud:8001`.                                                                                                                                                |
 | `SCAND_IMAGE`      | The version of the Docker image `scand-agent` that the service pulls and runs for the on-premises scan. The default is `42crunch/scand-agent:latest`. For more details on the available images, see the [release notes of 42Crunch Platform](https://docs.42crunch.com/latest/content/whatsnew/whats_new.htm). |
 | `EXPIRATION_TIME`  | The expiration time for the jobs (in seconds). Completed jobs are deleted after the specified time. The default value is `86400` (24 hours). Requires Kubernetes v1.21 or newer, for older Kubernetes versions jobs must be cleaned up manually using provided API or `kubectl`.                               |
+| `HTTP(S)_PROXY(_API)`| Here you can specify `HTTP_PROXY`, `HTTPS_PROXY`, `HTTP_PROXY_API`, and/or `HTTPS_PROXY_API` as the default values for these environmental runtime variables.  These can be changed at runtime in the job submission env as well. |
 
 ### Healthcheck
 
