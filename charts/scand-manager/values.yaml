@@ -12,7 +12,7 @@ containerPort: 8090
 #
 scanJob:
   platformService: services.42crunch.com:8001
-  scandImage: 42crunch/scand-agent:v2
+  scandImage: 42crunch/scand-agent:latest
   expirationTime: 3600
   ## Proxy defaults for API Scan jobs
   ## E.g.:
