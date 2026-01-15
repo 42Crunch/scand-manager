@@ -48,4 +48,40 @@ func readEnvConfig() {
 			log.Fatalf("ERROR, invalid EXPIRATION_TIME env var: '%d', must be <= %d", expirationTimeInt, maxExpirationTime)
 		}
 	}
+	// Default proxy envs (optional). Prefer upper-case; fall back to lower-case if set.
+	// default HTTP proxy
+	httpProxy := os.Getenv("HTTP_PROXY")
+	if httpProxy != "" {
+		defaultHTTPProxy = httpProxy
+	}
+
+	// default HTTPS proxy
+	httpsProxy := os.Getenv("HTTPS_PROXY")
+	if httpsProxy != "" {
+		defaultHTTPSProxy = httpsProxy
+	}
+
+	// default HTTP proxy for API calls
+	httpProxyAPI := os.Getenv("HTTP_PROXY_API")
+	if httpProxyAPI != "" {
+		defaultHTTPProxyAPI = httpProxyAPI
+	}
+
+	// default HTTPS proxy for API calls
+	httpsProxyAPI := os.Getenv("HTTPS_PROXY_API")
+	if httpsProxyAPI != "" {
+		defaultHTTPSProxyAPI = httpsProxyAPI
+	}
+
+	// default NO_PROXY
+	noProxy := os.Getenv("NO_PROXY")
+	if noProxy != "" {
+		defaultNoProxy = noProxy
+	}
+
+	// default NO_PROXY_API
+	noProxyAPI := os.Getenv("NO_PROXY_API")
+	if noProxyAPI != "" {
+		defaultNoProxyAPI = noProxyAPI
+	}
 }

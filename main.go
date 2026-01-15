@@ -35,6 +35,14 @@ var expirationTimeInt int64
 var clientset *kubernetes.Clientset
 var podconfig *v1.PodSpec
 
+// default proxies for jobs
+var defaultHTTPProxy string
+var defaultHTTPSProxy string
+var defaultHTTPProxyAPI string
+var defaultHTTPSProxyAPI string
+var defaultNoProxy string
+var defaultNoProxyAPI string
+
 func main() {
 
 	podconfigFile := flag.String("podconfig", "", "pod configuration file")

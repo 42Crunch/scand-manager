@@ -1,0 +1,117 @@
+# service account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-sa
+---
+# role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-role
+rules:
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["get", "create", "delete", "list"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+# role binding
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: api-sa-rolebinding
+  labels:
+    app: tools-rbac
+subjects:
+  - kind: ServiceAccount
+    name: api-sa
+roleRef:
+  kind: Role
+  name: api-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+  name: scand-job-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scand-job-manager
+  template:
+    metadata:
+      labels:
+        app: scand-job-manager
+    spec:
+      serviceAccountName: api-sa
+      containers:
+        - image: 42crunch/scand-manager:v1
+          name: scand-job-manager
+          ports:
+            - containerPort: 8090
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: PLATFORM_SERVICE
+              value: services.us.42crunch.cloud:8001
+            - name: SCAND_IMAGE
+              value: 42crunch/scand-agent:latest
+            - name: EXPIRATION_TIME
+              value: "86400"
+            # Example proxy settings that can be overridden as needed during job creation. 
+            # These will be passed to scand-agent jobs by default if specified
+            - name: HTTP_PROXY
+              value: http://corp-proxy.example:8080
+            - name: HTTPS_PROXY
+              value: http://corp-proxy.example:8443
+            - name: HTTP_PROXY_API
+              value: http://api-proxy.example:8080
+            - name: HTTPS_PROXY_API
+              value: http://api-proxy.example:8443
+            - name: NO_PROXY
+              value: "example.com,192.168.1.0/24"
+            - name: NO_PROXY_API
+              value: "example.com,192.168.1.0/24"
+      imagePullSecrets:
+          # Pull secret for scand-manager container, if required
+          # NOT for scand-agent jobs, that should be in podconfig.yaml
+        - name: privatepullsecret 
+---
+# service
+apiVersion: v1
+kind: Service
+metadata:
+  name: scand-job-manager
+spec:
+  type: NodePort
+  ports:
+    - port: 8090
+      targetPort: 8090
+  selector:
+    app: scand-job-manager
